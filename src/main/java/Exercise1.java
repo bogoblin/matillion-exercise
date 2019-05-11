@@ -5,7 +5,8 @@ package main.java;
 public class Exercise1 {
 
     /**
-     * Given two strings as command line arguments, output the difference between the two strings.
+     * Given two strings as command line arguments,
+     * output the difference between the two strings.
      * @param args
      */
     public static void main(String[] args) {
@@ -13,6 +14,8 @@ public class Exercise1 {
             System.out.println(stringDifference(args[1], args[2]));
         } catch (StringLengthMismatch e) {
             System.err.println(e.getMessage());
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.err.println("Please provide two strings as command line arguments.");
         }
     }
 
