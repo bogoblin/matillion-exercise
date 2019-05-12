@@ -1,15 +1,16 @@
-package test.java;
-
 import main.java.Exercise2;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 
 import java.sql.SQLException;
 
 public class Exercise2Test {
-    @BeforeAll
+
+    @BeforeClass
     public static void setup() {
         try {
             Exercise2.connect();
