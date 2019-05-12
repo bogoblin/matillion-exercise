@@ -12,14 +12,25 @@ public class Exercise2 {
     private static String DATABASE = "foodmart";
 
     private static Connection conn;
+    private static PreparedStatement preparedStatement;
 
     public static void main(String[] args) {
         // ask for input - department, then pay type, then education level
 
+        // Connect to the database
         try {
-            connect(USERNAME, PASSWORD, HOSTNAME, DATABASE);
+            connect();
         } catch (SQLException e) {
             System.err.println("Unable to connect to database, exiting.");
+            System.err.println(e.getMessage());
+            return;
+        }
+
+        // Prepare the statement to run queries on
+        try {
+            prepareStatement();
+        } catch (SQLException e) {
+            System.err.println("Unable to prepare statement, exiting.");
             System.err.println(e.getMessage());
             return;
         }
@@ -28,7 +39,7 @@ public class Exercise2 {
         try {
             EmployeesResult er = getEmployees(
                     "Store Management", "Monthly", "Bachelors Degree");
-            //System.out.println(er);
+            System.out.println(er);
         } catch (NoConnectionException e) {
             System.err.println(e.getMessage());
         } catch (SQLException e) {
@@ -38,12 +49,25 @@ public class Exercise2 {
 
     }
 
-    public static void connect(
-            String username, String password, String hostname, String database)
-            throws SQLException
+    public static void connect() throws SQLException
     {
         conn = DriverManager.getConnection(
                 "jdbc:mysql://"+HOSTNAME+"/"+DATABASE, USERNAME, PASSWORD);
+    }
+
+    public static void prepareStatement() throws SQLException {
+        preparedStatement = conn.prepareStatement(
+                "SELECT employee_id, full_name, position.position_title, " +
+                        "department_description, employee.management_role, salary, " +
+                        "pay_type, education_level " +
+                        "FROM employee " +
+                        "JOIN department " +
+                        "ON department.department_id = employee.department_id " +
+                        "JOIN position " +
+                        "ON position.position_id = employee.position_id " +
+                        "WHERE department_description = ? " +
+                        "AND pay_type = ? " +
+                        "AND education_level = ?;");
     }
 
     public static class NoConnectionException extends Exception {
@@ -61,26 +85,32 @@ public class Exercise2 {
                     "No connection to database. Call connect() first.");
         }
 
-        Statement stmt = conn.createStatement();
-        stmt.execute(
-                "PREPARE stmt FROM 'SELECT * " +
-                        "FROM employee " +
-                        "JOIN department " +
-                        "ON department.department_id = employee.department_id " +
-                        "JOIN position " +
-                        "ON position.position_id = employee.position_id " +
-                        "WHERE department_description = ? " +
-                        "AND pay_type = ? " +
-                        "AND education_level = ?';");
-        stmt.execute(String.format("SET @d = '%s';", department));
-        stmt.execute(String.format("SET @p = '%s';", payType));
-        stmt.execute(String.format("SET @e = '%s';", educationLevel));
-        stmt.execute("EXECUTE stmt USING @d, @p, @e;");
+        preparedStatement.setString(1, department);
+        preparedStatement.setString(2, payType);
+        preparedStatement.setString(3, educationLevel);
 
-        return new EmployeesResult(stmt.getResultSet());
+        preparedStatement.execute();
+
+        return new EmployeesResult(preparedStatement.getResultSet());
     }
 
     public static class EmployeesResult {
+
+        public int getColumnCount() {
+            return columnCount;
+        }
+
+        public String[] getColumnLabels() {
+            return columnLabels;
+        }
+
+        public int getNumberOfResults() {
+            return numberOfResults;
+        }
+
+        public ArrayList<String[]> getResults() {
+            return results;
+        }
 
         private int columnCount;
         private String[] columnLabels;
@@ -130,37 +160,18 @@ public class Exercise2 {
             }
         }
 
-        // These are the names of the columns that should be printed.
-        private static String[] colsToPrintArray = {
-                "employee_id", "full_name", "position_title",
-                "department_description", "management_role", "salary",
-                "pay_type", "education_level"
-        };
         /**
          * Create a string for printing, showing each employee from the results.
          * @return
          */
         public String toString() {
-            // First make a hashset of the columns to be printed.
-            HashSet<String> colsToPrint = new HashSet<>(Arrays.asList(colsToPrintArray));
-
-            // Then we can get the indices of the columns to be printed.
-            ArrayList<Integer> colsToPrintIndices = new ArrayList<>();
-
-            for (int i=1; i<columnCount; i++) {
-                // Check if we want to print this column.
-                if (colsToPrint.contains(columnLabels[i])) {
-                    colsToPrintIndices.add(i);
-                }
-            }
-
             StringBuilder outputBuilder = new StringBuilder();
 
             outputBuilder.append(String.format("Found %d results:\n", numberOfResults));
 
             for (String[] result : results) {
                 outputBuilder.append("------------------------------\n");
-                for (int i : colsToPrintIndices) {
+                for (int i=1; i<columnCount; i++) {
                     outputBuilder.append(columnLabels[i] + ": ");
                     outputBuilder.append(result[i] + "\n");
                 }
