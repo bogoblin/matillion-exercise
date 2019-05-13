@@ -8,10 +8,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
 import static org.mockito.Matchers.anyString;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 
 public class Exercise2Test {
@@ -130,6 +127,24 @@ public class Exercise2Test {
             psInOrder.verify(ps).setString(3, "Edu");
             psInOrder.verify(ps).execute();
             psInOrder.verify(ps).getResultSet();
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @Test
+    public void integrationTest() {
+        try {
+            Connection conn = Exercise2.defaultConnection();
+            Exercise2.EmployeeFinder ef = new Exercise2.EmployeeFinder(conn);
+            ArrayList<Exercise2.Employee> employees =
+                    ef.findEmployees("Store Management", "Hourly", "Bachelors Degree");
+            for (Exercise2.Employee employee:
+                 employees) {
+                assertEquals("Store Management", employee.getDepartmentDescription());
+                assertEquals("Hourly", employee.getPayType());
+                assertEquals("Bachelors Degree", employee.getEducationLevel());
+            }
         } catch (Exception e) {
             fail();
         }

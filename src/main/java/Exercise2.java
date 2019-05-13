@@ -11,8 +11,7 @@ public class Exercise2 {
     public static void main(String[] args) {
         Connection conn;
         try {
-            conn = DriverManager.getConnection(
-                    "jdbc:mysql://" + HOSTNAME + "/" + DATABASE, USERNAME, PASSWORD);
+            conn = defaultConnection();
 
             EmployeeFinder ef = new EmployeeFinder(conn);
 
@@ -67,10 +66,20 @@ public class Exercise2 {
 
     }
 
+    public static Connection defaultConnection() throws SQLException {
+        return DriverManager.getConnection(
+                "jdbc:mysql://" + HOSTNAME + "/" + DATABASE, USERNAME, PASSWORD);
+    }
+
     public static class EmployeeFinder {
         private Connection conn;
         private PreparedStatement preparedStatement;
 
+        /**
+         * Creating an EmployeeFinder prepares a statement used to find employees
+         * @param requiredConn a connection to an SQL database
+         * @throws PrepareStatementException if preparing the statement fails.
+         */
         public EmployeeFinder(Connection requiredConn) throws PrepareStatementException {
             conn = requiredConn;
 
@@ -94,6 +103,14 @@ public class Exercise2 {
 
         }
 
+        /**
+         * Find employees matching the parameters
+         * @param department
+         * @param payType
+         * @param educationLevel
+         * @return A list of employees
+         * @throws FindEmployeesException
+         */
         public ArrayList<Employee> findEmployees(String department, String payType, String educationLevel)
         throws FindEmployeesException
         {
@@ -107,6 +124,8 @@ public class Exercise2 {
 
                 ArrayList<Employee> employees = new ArrayList<>();
 
+                // Calling rs.next() moves the cursor to the next result.
+                // If it returns false, then there are no more results in the result set.
                 while (rs.next()) {
                     employees.add(new Employee(rs));
                 }
