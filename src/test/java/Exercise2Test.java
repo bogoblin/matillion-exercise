@@ -1,12 +1,17 @@
 import org.junit.Test;
+import org.mockito.InOrder;
+import org.mockito.Mockito;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.anyString;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class Exercise2Test {
     @Test
@@ -55,6 +60,40 @@ public class Exercise2Test {
                     "WHERE department_description = ? " +
                     "AND pay_type = ? " +
                     "AND education_level = ?;");
+        } catch (SQLException e) {
+            fail();
+        }
+    }
+
+    @Test
+    public void testFindEmployeesWithNoResults() {
+        Connection conn = mock(Connection.class);
+        PreparedStatement ps = mock(PreparedStatement.class);
+        ResultSet rs = mock(ResultSet.class);
+
+        try {
+            // When we create the employee finder, inject the mock prepared statement
+            when(conn.prepareStatement(anyString())).thenReturn(ps);
+
+            when(ps.getResultSet()).thenReturn(rs);
+            when(rs.next()).thenReturn(false);
+
+            // Create the employee finder
+            Exercise2.EmployeeFinder ef = new Exercise2.EmployeeFinder(conn);
+
+            ArrayList<Exercise2.Employee> employees = ef.findEmployees(
+                    "Dep", "Pay", "Edu");
+
+            // Since rs.next() returns false, the list of employees should be empty
+            assertEquals(true, employees.isEmpty());
+
+            // It is important that these are executed in the correct order
+            InOrder psInOrder = Mockito.inOrder(ps);
+            psInOrder.verify(ps).setString(1, "Dep");
+            psInOrder.verify(ps).setString(2, "Pay");
+            psInOrder.verify(ps).setString(3, "Edu");
+            psInOrder.verify(ps).execute();
+            psInOrder.verify(ps).getResultSet();
         } catch (SQLException e) {
             fail();
         }
