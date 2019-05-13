@@ -96,7 +96,7 @@ public class Exercise2Test {
                     "WHERE department_description = ? " +
                     "AND pay_type = ? " +
                     "AND education_level = ?;");
-        } catch (SQLException e) {
+        } catch (Exception e) {
             fail();
         }
     }
@@ -130,7 +130,7 @@ public class Exercise2Test {
             psInOrder.verify(ps).setString(3, "Edu");
             psInOrder.verify(ps).execute();
             psInOrder.verify(ps).getResultSet();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             fail();
         }
     }

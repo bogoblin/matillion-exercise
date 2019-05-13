@@ -1,5 +1,6 @@
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Exercise2 {
     private static String USERNAME = "technical_test";
@@ -8,6 +9,58 @@ public class Exercise2 {
     private static String DATABASE = "foodmart";
 
     public static void main(String[] args) {
+        Connection conn;
+        try {
+            conn = DriverManager.getConnection(
+                    "jdbc:mysql://" + HOSTNAME + "/" + DATABASE, USERNAME, PASSWORD);
+
+            EmployeeFinder ef = new EmployeeFinder(conn);
+
+            boolean exit = false;
+            Scanner scanner = new Scanner(System.in);
+
+            while (!exit) {
+                System.out.print("Enter a department: ");
+                String department = scanner.nextLine();
+
+                System.out.print("Enter a pay type: ");
+                String payType = scanner.nextLine();
+
+                System.out.print("Enter an education level: ");
+                String educationLevel = scanner.nextLine();
+
+                ArrayList<Employee> employees = ef.findEmployees(department, payType, educationLevel);
+
+                int numberOfEmployeesFound = employees.size();
+                System.out.println(String.format("%d employees found:", numberOfEmployeesFound));
+                for (Employee e :
+                        employees) {
+                    System.out.println(e);
+                }
+
+                while(true) {
+                    System.out.print("Run another query? (y/n): ");
+                    String yesOrNo = scanner.nextLine();
+                    if (yesOrNo.equalsIgnoreCase("n")) {
+                        exit = true;
+                        break;
+                    } else if (yesOrNo.equalsIgnoreCase("y")) {
+                        break;
+                    } else {
+                        System.out.println("Please enter y or n.");
+                    }
+                }
+            }
+
+            conn.close();
+
+        } catch (SQLException e) {
+            System.out.println("Unable to connect to database. Exiting.");
+            System.err.println(e.getMessage());
+        } catch (PrepareStatementException e) {
+            System.out.println("Unable to prepare statement. Exiting.");
+            System.err.println(e.getMessage());
+        }
 
     }
 
@@ -15,22 +68,27 @@ public class Exercise2 {
         private Connection conn;
         private PreparedStatement preparedStatement;
 
-        public EmployeeFinder(Connection requiredConn) throws SQLException {
+        public EmployeeFinder(Connection requiredConn) throws PrepareStatementException {
             conn = requiredConn;
 
             // Prepare the statement used to find employees
-            preparedStatement = conn.prepareStatement(
-                    "SELECT employee_id, full_name, position.position_title, " +
-                            "department_description, employee.management_role, salary, " +
-                            "pay_type, education_level " +
-                            "FROM employee " +
-                            "JOIN department " +
-                            "ON department.department_id = employee.department_id " +
-                            "JOIN position " +
-                            "ON position.position_id = employee.position_id " +
-                            "WHERE department_description = ? " +
-                            "AND pay_type = ? " +
-                            "AND education_level = ?;");
+            try {
+                preparedStatement = conn.prepareStatement(
+                        "SELECT employee_id, full_name, position.position_title, " +
+                                "department_description, employee.management_role, salary, " +
+                                "pay_type, education_level " +
+                                "FROM employee " +
+                                "JOIN department " +
+                                "ON department.department_id = employee.department_id " +
+                                "JOIN position " +
+                                "ON position.position_id = employee.position_id " +
+                                "WHERE department_description = ? " +
+                                "AND pay_type = ? " +
+                                "AND education_level = ?;");
+            } catch (SQLException e) {
+                throw new PrepareStatementException(e.getMessage());
+            }
+
         }
 
         public ArrayList<Employee> findEmployees(String department, String payType, String educationLevel)
@@ -124,6 +182,12 @@ public class Exercise2 {
             out.append(String.format("Education: %s\n", educationLevel));
 
             return out.toString();
+        }
+    }
+
+    public static class PrepareStatementException extends Exception {
+        public PrepareStatementException(String message) {
+            super(message);
         }
     }
 }
