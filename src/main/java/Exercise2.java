@@ -60,6 +60,9 @@ public class Exercise2 {
         } catch (PrepareStatementException e) {
             System.out.println("Unable to prepare statement. Exiting.");
             System.err.println(e.getMessage());
+        } catch (FindEmployeesException e) {
+            System.out.println("Problem occurred when finding employees. Exiting.");
+            System.err.println(e.getMessage());
         }
 
     }
@@ -92,22 +95,27 @@ public class Exercise2 {
         }
 
         public ArrayList<Employee> findEmployees(String department, String payType, String educationLevel)
-        throws SQLException
+        throws FindEmployeesException
         {
-            // Execute the prepared statement with the given arguments
-            preparedStatement.setString(1, department);
-            preparedStatement.setString(2, payType);
-            preparedStatement.setString(3, educationLevel);
-            preparedStatement.execute();
-            ResultSet rs = preparedStatement.getResultSet();
+            try {
+                // Execute the prepared statement with the given arguments
+                preparedStatement.setString(1, department);
+                preparedStatement.setString(2, payType);
+                preparedStatement.setString(3, educationLevel);
+                preparedStatement.execute();
+                ResultSet rs = preparedStatement.getResultSet();
 
-            ArrayList<Employee> employees = new ArrayList<>();
+                ArrayList<Employee> employees = new ArrayList<>();
 
-            while (rs.next()) {
-                employees.add(new Employee(rs));
+                while (rs.next()) {
+                    employees.add(new Employee(rs));
+                }
+
+
+                return employees;
+            } catch (SQLException e) {
+                throw new FindEmployeesException(e.getMessage());
             }
-
-            return employees;
         }
     }
 
@@ -187,6 +195,11 @@ public class Exercise2 {
 
     public static class PrepareStatementException extends Exception {
         public PrepareStatementException(String message) {
+            super(message);
+        }
+    }
+    public static class FindEmployeesException extends Exception {
+        public FindEmployeesException(String message) {
             super(message);
         }
     }
