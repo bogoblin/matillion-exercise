@@ -3,21 +3,25 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Exercise2 {
+    // Credentials for defaultConnection()
     private static String USERNAME = "technical_test";
     private static String PASSWORD = "HopefullyProspectiveDevsDontBreakMe";
     private static String HOSTNAME = "mysql-technical-test.cq5i4y35n9gg.eu-west-1.rds.amazonaws.com";
     private static String DATABASE = "foodmart";
 
     public static void main(String[] args) {
-        Connection conn;
         try {
-            conn = defaultConnection();
+            // Make a connection to the database
+            Connection conn = defaultConnection();
 
             EmployeeFinder ef = new EmployeeFinder(conn);
 
             boolean exit = false;
             Scanner scanner = new Scanner(System.in);
 
+            // This section handles user input - the program allows users to
+            // make multiple queries to the database, so this must loop until
+            // the user asks to exit.
             while (!exit) {
                 System.out.print("Enter a department: ");
                 String department = scanner.nextLine();
@@ -30,20 +34,22 @@ public class Exercise2 {
 
                 ArrayList<Employee> employees = ef.findEmployees(department, payType, educationLevel);
 
+                // Output the list of employees that were found
                 int numberOfEmployeesFound = employees.size();
                 System.out.println(String.format("%d employees found:", numberOfEmployeesFound));
-                for (Employee e :
-                        employees) {
+                for (Employee e : employees) {
                     System.out.println(e);
                 }
 
+                // Ask the user if they want to run another query.
                 while(true) {
                     System.out.print("Run another query? (y/n): ");
                     String yesOrNo = scanner.nextLine();
                     if (yesOrNo.equalsIgnoreCase("n")) {
-                        exit = true;
+                        exit = true; // break from the outer while loop also
                         break;
                     } else if (yesOrNo.equalsIgnoreCase("y")) {
+                        exit = false; // continue the outer while loop
                         break;
                     } else {
                         System.out.println("Please enter y or n.");
@@ -51,9 +57,13 @@ public class Exercise2 {
                 }
             }
 
-            conn.close();
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                System.out.println("Unable to close database connection. Exiting.");
+            }
 
-        } catch (SQLException e) {
+        } catch (DatabaseConnectionException e) {
             System.out.println("Unable to connect to database. Exiting.");
             System.err.println(e.getMessage());
         } catch (PrepareStatementException e) {
@@ -66,9 +76,19 @@ public class Exercise2 {
 
     }
 
-    public static Connection defaultConnection() throws SQLException {
-        return DriverManager.getConnection(
-                "jdbc:mysql://" + HOSTNAME + "/" + DATABASE, USERNAME, PASSWORD);
+    /**
+     * Get the default connection to the database.
+     * Credentials for this are specified in the Exercise2 class.
+     * @return an SQL database connection
+     * @throws DatabaseConnectionException if unable to connect to the database
+     */
+    public static Connection defaultConnection() throws DatabaseConnectionException {
+        try {
+            return DriverManager.getConnection(
+                    "jdbc:mysql://" + HOSTNAME + "/" + DATABASE, USERNAME, PASSWORD);
+        } catch (SQLException e) {
+            throw new DatabaseConnectionException(e.getMessage());
+        }
     }
 
     public static class EmployeeFinder {
@@ -221,5 +241,8 @@ public class Exercise2 {
         public FindEmployeesException(String message) {
             super(message);
         }
+    }
+    public static class DatabaseConnectionException extends Exception {
+        public DatabaseConnectionException(String message) { super(message); }
     }
 }
