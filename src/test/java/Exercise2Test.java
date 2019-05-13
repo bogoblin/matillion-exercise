@@ -1,10 +1,7 @@
-import main.java.Exercise2;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-
 
 import java.sql.SQLException;
 

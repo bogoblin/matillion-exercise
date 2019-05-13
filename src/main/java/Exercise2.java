@@ -1,9 +1,5 @@
-package main.java;
-
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 
 public class Exercise2 {
     private static String USERNAME = "technical_test";
