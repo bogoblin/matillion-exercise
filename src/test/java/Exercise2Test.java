@@ -1,3 +1,4 @@
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
@@ -14,9 +15,32 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class Exercise2Test {
+    static Exercise2.Employee testEmployee;
+
+    @BeforeClass
+    public static void setup() {
+        ResultSet rs = mock(ResultSet.class);
+
+
+        try {
+            when(rs.getInt(1)).thenReturn(1);
+            when(rs.getString(2)).thenReturn("Test Name");
+            when(rs.getString(3)).thenReturn("Test Position Title");
+            when(rs.getString(4)).thenReturn("Test Department Description");
+            when(rs.getString(5)).thenReturn("Test Management Role");
+            when(rs.getString(6)).thenReturn("4000");
+            when(rs.getString(7)).thenReturn("Test Pay Type");
+            when(rs.getString(8)).thenReturn("Test Education Level");
+            testEmployee = new Exercise2.Employee(rs);
+        } catch (SQLException e) {
+            fail();
+        }
+    }
+
     @Test
     public void testCreatingEmployee() {
         ResultSet rs = mock(ResultSet.class);
+
 
         try {
             when(rs.getInt(1)).thenReturn(1);
@@ -28,18 +52,30 @@ public class Exercise2Test {
             when(rs.getString(7)).thenReturn("Test Pay Type");
             when(rs.getString(8)).thenReturn("Test Education Level");
 
-            Exercise2.Employee test = new Exercise2.Employee(rs);
-            assertEquals(1, test.getId());
-            assertEquals("Test Name", test.getFullName());
-            assertEquals("Test Position Title", test.getPositionTitle());
-            assertEquals("Test Department Description", test.getDepartmentDescription());
-            assertEquals("Test Management Role", test.getManagementRole());
-            assertEquals("4000", test.getSalary());
-            assertEquals("Test Pay Type", test.getPayType());
-            assertEquals("Test Education Level", test.getEducationLevel());
+            testEmployee = new Exercise2.Employee(rs);
+            assertEquals(1, testEmployee.getId());
+            assertEquals("Test Name", testEmployee.getFullName());
+            assertEquals("Test Position Title", testEmployee.getPositionTitle());
+            assertEquals("Test Department Description", testEmployee.getDepartmentDescription());
+            assertEquals("Test Management Role", testEmployee.getManagementRole());
+            assertEquals("4000", testEmployee.getSalary());
+            assertEquals("Test Pay Type", testEmployee.getPayType());
+            assertEquals("Test Education Level", testEmployee.getEducationLevel());
         } catch (SQLException e) {
             fail();
         }
+    }
+
+    @Test
+    public void testEmployeeToString() {
+        assertEquals("Employee id: 1\n" +
+                "Full name: Test Name\n" +
+                "Position: Test Position Title\n" +
+                "Department: Test Department Description\n" +
+                "Management Role: Test Management Role\n" +
+                "Salary: 4000\n" +
+                "Pay Type: Test Pay Type\n" +
+                "Education: Test Education Level\n", testEmployee.toString());
     }
 
     @Test

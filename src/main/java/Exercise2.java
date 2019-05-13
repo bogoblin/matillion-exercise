@@ -110,5 +110,20 @@ public class Exercise2 {
             payType = rs.getString(7);
             educationLevel = rs.getString(8);
         }
+
+        public String toString() {
+            StringBuilder out = new StringBuilder();
+
+            out.append(String.format("Employee id: %d\n", id));
+            out.append(String.format("Full name: %s\n", fullName));
+            out.append(String.format("Position: %s\n", positionTitle));
+            out.append(String.format("Department: %s\n", departmentDescription));
+            out.append(String.format("Management Role: %s\n", managementRole));
+            out.append(String.format("Salary: %s\n", salary));
+            out.append(String.format("Pay Type: %s\n", payType));
+            out.append(String.format("Education: %s\n", educationLevel));
+
+            return out.toString();
+        }
     }
 }
